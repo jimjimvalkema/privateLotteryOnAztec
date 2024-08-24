@@ -1,12 +1,15 @@
-use std::hash::poseidon;
+
+use dep::std::hash::poseidon;
+
+global ROUNDS = 4;
 
 fn main(
     x:pub u64,
     domain:pub u64,
     seed:pub Field,
-    rounds:pub u64, // could be hardcoded
+    //rounds:pub u64, // could be hardcoded
  ) -> pub u64 {
-    shuffle(x,domain,seed,rounds)
+    shuffle(x,domain,seed,ROUNDS)
 }
 
 
@@ -42,7 +45,7 @@ fn usqrt(s: u64)-> u64 {
     if (s > 3) {
         z = s;
         let mut x = s / 2 + 1;
-        for index in 0 .. 40 { //0 .. 36 should be enough for u64, 40 to be safe (is the upper bound for u64 36 because: Math.log2(64) ** 2 = 36???)
+        for index in 0 .. 36 { //0 .. 36 should be enough for u64 (is the upper bound for u64 36 because: Math.log2(64) ** 2 = 36???)
             if x < z {
                 z = x;
                 x = (s / x + x) / 2; 
@@ -69,7 +72,8 @@ fn shuffle(
     
     let mut x = _x;
     let mut needs_permute = true;
-    for index in 0 .. 10 { // TODO find the actual upperbound of this loop (is it 3?)
+    //https://github.com/kevincharm/gfc-fpe/tree/master?tab=readme-ov-file#iteration-bounds
+    for index in 0 .. 3 { // TODO find the actual upperbound of this loop (is it 3?)
         if (needs_permute ) {
             let mut L = x % h;
             let mut R = x / h;
@@ -89,12 +93,11 @@ fn shuffle(
 #[test]
 fn test_main() {
     let seed = 0x1234;
-    let rounds = 4; //should be >4
     let domain = 10;
 
     let mut shuffledIndexes: [u64;10] = [0;10];
     for index in 0 .. domain {
-        let shuffledIndex = main(index, domain, seed,rounds);
+        let shuffledIndex = main(index, domain, seed);
         shuffledIndexes[index] = shuffledIndex;
 
         assert(shuffledIndex<domain, "shuffledIndex outside of domain");
